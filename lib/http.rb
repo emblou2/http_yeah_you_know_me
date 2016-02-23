@@ -24,7 +24,10 @@ loop do
 
   puts "Sending response."
   # all of this should be moved to request class
-
+#create another counter in request class for hello specifically.
+#This will go in the request instance. Make a reaponse.rb to create
+#a whole response class. It will handle all the path suff. Incriment
+#conditional in hello counter.
   response = "<pre>Hello World! (#{counter})</pre>"
   output = "<html><head></head><body>#{response}</body></html>"
   headers = ["http/1.1 200 ok",
