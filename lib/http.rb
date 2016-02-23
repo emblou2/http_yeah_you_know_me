@@ -13,15 +13,17 @@ loop do
   while line = client.gets and !line.chomp.empty?
     request_lines << line.chomp
   end
+  # request = Request.new(request_lines)
+  # request.incoming_to_hash
 
   counter +=1
 
   puts "Got this request:"
-  puts request_lines.join("\n")
-  # request = Request.new(request_lines)
-  # request.incoming_to_hash
+  puts request_lines.join("\n") # should be something called on request
+
 
   puts "Sending response."
+  # all of this should be moved to request class
   response = "<pre>Hello World! (#{counter})</pre>"
   output = "<html><head></head><body>#{response}</body></html>"
   headers = ["http/1.1 200 ok",
