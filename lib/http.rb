@@ -1,5 +1,6 @@
 require 'socket'
 require 'pry'
+require_relative 'request'
 
 tcp_server = TCPServer.new(9292)
 counter = 0
@@ -16,7 +17,9 @@ loop do
   counter +=1
 
   puts "Got this request:"
-  puts request_lines.inspect
+  puts request_lines.join("\n")
+  # request = Request.new(request_lines)
+  # request.incoming_to_hash
 
   puts "Sending response."
   response = "<pre>Hello World! (#{counter})</pre>"
