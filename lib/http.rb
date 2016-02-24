@@ -33,8 +33,6 @@ loop do
   client.puts headers
   client.puts output
 
-  binding.pry
-
   puts "#{total_counter}"
 
 end
