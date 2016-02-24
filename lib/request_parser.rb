@@ -1,12 +1,4 @@
-require 'pry'
-
-class Request
-
-  attr_accessor :request_hash
-
-  def initialize(request_lines)
-    request_to_hash(request_lines)
-  end
+module RequestParser
 
   def request_to_hash(request_lines)
     @request_hash = Hash.new
