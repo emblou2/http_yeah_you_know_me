@@ -11,7 +11,6 @@ class Server
     @total_counter = 0
     @shutdown_counter = 0
     @tcp_server = TCPServer.new(9292)
-    run_client
   end
 
   def run_client

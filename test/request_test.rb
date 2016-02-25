@@ -1,8 +1,9 @@
 require 'minitest/autorun'
 require 'minitest/pride'
-require '../lib/request'
+require_relative '../lib/request'
+require_relative 'test_helper'
 
-class TestRequestTest < Minitest::Test
+class RequestTest < TestHelperTest
 
   def test_incoming_request_turns_into_hash
     request = Request.new(["GET / HTTP/1.1",
