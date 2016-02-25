@@ -2,7 +2,7 @@ require 'pry'
 
 class Request
 
-  attr_accessor :request_hash
+  attr_reader :request_hash
 
   def initialize(request_lines)
     request_to_hash(request_lines)

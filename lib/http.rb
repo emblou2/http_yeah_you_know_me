@@ -34,12 +34,8 @@ until shutdown_counter == 1 do
     shutdown_counter += 1
     total_counter += 1
     response = "<pre>Total Requests: #{total_counter}</pre>"
-  else
+  elsif request.request_hash[:Verb] == "GET" && request.request_hash[:Path].split("?").first == "/word_search"
     total_counter += 1
-    response = "<pre>#{request.request_hash}</pre>"
-  end
-
-  if request.request_hash[:Verb] == "GET" && request.request_hash[:Path].split("?").first == "/word_search"
     all_words = File.read('/usr/share/dict/words')
     search_word = request.request_hash[:Path].split("?").last.split("=").last
     if all_words.include?(search_word)
@@ -47,6 +43,9 @@ until shutdown_counter == 1 do
     else
       response = "<pre>#{search_word} is a not a known word</pre>"
     end
+  else
+    total_counter += 1
+    response = "<pre>#{request.request_hash}</pre>"
   end
 
   output = "<html><head></head><body>#{response}</body></html>"
