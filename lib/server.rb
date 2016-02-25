@@ -1,6 +1,7 @@
 require 'socket'
 require 'pry'
 require_relative 'request'
+require_relative 'response'
 
 class Server
 
@@ -16,7 +17,6 @@ class Server
   def run_client
     while @shutdown_counter == 0 do
       client = @tcp_server.accept
-
       puts "Ready for a request."
 
       request_lines = []
@@ -24,53 +24,59 @@ class Server
         request_lines << line.chomp
       end
 
-      request = Request.new(request_lines)
+      @request = Request.new(request_lines)
+
+      parse_request
 
       puts "Sending response."
 
-      if request.request_hash[:Path] == "/hello"
-        @hello_counter += 1
-        @total_counter += 1
-        response = "<pre>Hello World! (#{@hello_counter})</pre>"
-      elsif request.request_hash[:Path] == "/datetime"
-        @total_counter += 1
-        time = Time.now.strftime("%I:%M%p on %A, %B %e, %Y")
-        response = "<pre>#{time}</pre>"
-      elsif request.request_hash[:Path] == "/shutdown"
-        @shutdown_counter += 1
-        @total_counter += 1
-        response = "<pre>Total Requests: #{@total_counter}</pre>"
-        puts "Shutting down."
-      elsif request.request_hash[:Verb] == "GET" && request.request_hash[:Path].split("?").first == "/word_search"
-        @total_counter += 1
-        all_words = File.read('/usr/share/dict/words')
-        search_word = request.request_hash[:Path].split("?").last.split("=").last
-        if all_words.include?(search_word)
-          response = "<pre>#{search_word} is a known word</pre>"
-        else
-          response = "<pre>#{search_word} is a not a known word</pre>"
-        end
-      else
-        @total_counter += 1
-        response = "<pre>#{request.request_hash}</pre>"
-      end
+      client.puts @response.headers
+      client.puts @response.output
 
-      output = "<html><head></head><body>#{response}</body></html>"
-      headers = ["http/1.1 200 ok",
-                "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
-                "server: ruby",
-                "content-type: text/html; charset=iso-8859-1",
-                "content-length: #{output.length}\r\n\r\n"].join("\r\n")
-      client.puts headers
-      client.puts output
-
-      puts "\nResponse: #{response}"
+      puts "\nResponse: #{@response.output}"
       puts "\nTotal Counter: #{@total_counter}"
-      request.request_hash.each { |key, value| puts "#{key}: #{value}"}
+      @request.request_hash.each { |key, value| puts "#{key}: #{value}"}
     end
     client.close
     puts "\nResponse complete, exiting."
   end
 
+  def requests_hello?
+    @request.request_hash[:Path] == "/hello"
+  end
+
+  def requests_datetime?
+    @request.request_hash[:Path] == "/datetime"
+  end
+
+  def requests_shutdown?
+    @request.request_hash[:Path] == "/shutdown"
+  end
+
+  def requests_words?
+    @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path].split("?").first == "/word_search"
+  end
+
+  def parse_request
+    if requests_hello?
+      @hello_counter += 1
+      @total_counter += 1
+      @response = Response.new(:hello, @hello_counter)
+    elsif requests_datetime?
+      @total_counter += 1
+      @response = Response.new(:datetime)
+    elsif requests_shutdown?
+      @shutdown_counter += 1
+      @total_counter += 1
+      @response = Response.new(:shutdown, @total_counter)
+    elsif requests_words?
+      @total_counter += 1
+      search_word = @request.request_hash[:Path].split("?").last.split("=").last
+      @response = Response.new(:words, search_word)
+    else
+      @total_counter += 1
+      @response = Response.new(:other, @request)
+    end
+  end
 
 end
