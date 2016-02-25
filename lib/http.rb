@@ -11,7 +11,7 @@ shutdown_counter = 0
 until shutdown_counter == 1 do
   client = tcp_server.accept
 
-  puts "Ready for a request"
+  puts "Ready for a request."
 
   request_lines = []
   while line = client.gets and !line.chomp.empty?
@@ -25,7 +25,7 @@ until shutdown_counter == 1 do
   if request.request_hash[:Path] == "/hello"
     hello_counter += 1
     total_counter += 1
-    response = "<pre>Hello World! #{hello_counter}</pre>"
+    response = "<pre>Hello World! (#{hello_counter})</pre>"
   elsif request.request_hash[:Path] == "/datetime"
     total_counter += 1
     time = Time.now.strftime("%I:%M%p on %A, %B %e, %Y")
@@ -41,7 +41,12 @@ until shutdown_counter == 1 do
 
   if request.request_hash[:Verb] == "GET" && request.request_hash[:Path].split("?").first == "/word_search"
     all_words = File.read('/usr/share/dict/words')
-    response = "<pre>dict search</pre>"
+    search_word = request.request_hash[:Path].split("?").last.split("=").last
+    if all_words.include?(search_word)
+      response = "<pre>#{search_word} is a known word</pre>"
+    else
+      response = "<pre>#{search_word} is a not a known word</pre>"
+    end
   end
 
   output = "<html><head></head><body>#{response}</body></html>"
@@ -53,11 +58,11 @@ until shutdown_counter == 1 do
   client.puts headers
   client.puts output
 
-  puts "#{total_counter}"
-  puts "\n#{request.request_hash}"
+  puts "\nResponse: #{response}"
+  puts "\nTotal Counter: #{total_counter}"
+  request.request_hash.each { |key, value| puts "#{key}: #{value}"}
 
 end
 
 client.close
 puts "\nResponse complete, exiting."
-puts "\n#{request.request_hash}"
