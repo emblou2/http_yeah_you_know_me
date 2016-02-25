@@ -14,6 +14,7 @@ class TestRequestTest < Minitest::Test
                            "Accept-Encoding: gzip, deflate, sdch",
                            "Accept-Language: en-US,en;q=0.8"])
 
+    assert_equal request.request_hash[:Verb], "GET"
     assert_equal request.request_hash[:Host], "127.0.0.1"
     assert_equal request.request_hash[:Port], "9292"
     assert_equal request.request_hash[:Path], "/"

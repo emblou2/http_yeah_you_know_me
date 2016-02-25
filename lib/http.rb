@@ -6,9 +6,12 @@ tcp_server = TCPServer.new(9292)
 
 hello_counter = 0
 total_counter = 0
+shutdown_counter = 0
 
-loop do
+until shutdown_counter == 1 do
   client = tcp_server.accept
+
+  puts "Ready for a request"
 
   request_lines = []
   while line = client.gets and !line.chomp.empty?
@@ -17,13 +20,30 @@ loop do
 
   request = Request.new(request_lines)
 
-  puts "Ready for a request"
-  total_counter += 1
-
-  puts "Got this request:"
-
   puts "Sending response."
-  response = "<pre>Hello World! #{total_counter}</pre>"
+
+  if request.request_hash[:Path] == "/hello"
+    hello_counter += 1
+    total_counter += 1
+    response = "<pre>Hello World! #{hello_counter}</pre>"
+  elsif request.request_hash[:Path] == "/datetime"
+    total_counter += 1
+    time = Time.now.strftime("%I:%M%p on %A, %B %e, %Y")
+    response = "<pre>#{time}</pre>"
+  elsif request.request_hash[:Path] == "/shutdown"
+    shutdown_counter += 1
+    total_counter += 1
+    response = "<pre>Total Requests: #{total_counter}</pre>"
+  else
+    total_counter += 1
+    response = "<pre>#{request.request_hash}</pre>"
+  end
+
+  if request.request_hash[:Verb] == "GET" && request.request_hash[:Path].split("?").first == "/word_search"
+    all_words = File.read('/usr/share/dict/words')
+    response = "<pre>dict search</pre>"
+  end
+
   output = "<html><head></head><body>#{response}</body></html>"
   headers = ["http/1.1 200 ok",
             "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
@@ -34,8 +54,10 @@ loop do
   client.puts output
 
   puts "#{total_counter}"
+  puts "\n#{request.request_hash}"
 
 end
 
 client.close
 puts "\nResponse complete, exiting."
+puts "\n#{request.request_hash}"
