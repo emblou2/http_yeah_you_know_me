@@ -21,7 +21,7 @@ class Server
     while client_wants_to_talk? do
       accept_request
       package_request
-      parse_request
+      read_request
       send_response
     end
   end
@@ -60,7 +60,7 @@ class Server
     @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path].split("?").first == "/word_search"
   end
 
-  def parse_request
+  def read_request
     if requests_hello?
       @hello_counter += 1
       @total_counter += 1
