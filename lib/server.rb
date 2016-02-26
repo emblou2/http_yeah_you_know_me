@@ -15,30 +15,30 @@ class Server
   end
 
   def run_client
-    while @shutdown_counter == 0 do
-      client = @tcp_server.accept
-      puts "Ready for a request."
-
-      request_lines = []
-      while line = client.gets and !line.chomp.empty?
-        request_lines << line.chomp
-      end
-
-      @request = Request.new(request_lines)
-
+    while open_for_business? do
+      accept_request
+      package_request
       parse_request
-
-      puts "Sending response."
-
-      client.puts @response.headers
-      client.puts @response.output
-
-      puts "\nResponse: #{@response.output}"
-      puts "\nTotal Counter: #{@total_counter}"
-      @request.request_hash.each { |key, value| puts "#{key}: #{value}"}
+      send_response
     end
-    client.close
-    puts "\nResponse complete, exiting."
+  end
+
+  def open_for_business?
+    @shutdown_counter == 0
+  end
+
+  def accept_request
+    @client = @tcp_server.accept
+    puts "Ready for a request."
+  end
+
+  def package_request
+    request_lines = []
+    while line = @client.gets and !line.chomp.empty?
+      request_lines << line.chomp
+    end
+    puts "Received request."
+    @request = Request.new(request_lines)
   end
 
   def requests_hello?
@@ -65,18 +65,34 @@ class Server
     elsif requests_datetime?
       @total_counter += 1
       @response = Response.new(:datetime)
-    elsif requests_shutdown?
-      @shutdown_counter += 1
-      @total_counter += 1
-      @response = Response.new(:shutdown, @total_counter)
     elsif requests_words?
       @total_counter += 1
       search_word = @request.request_hash[:Path].split("?").last.split("=").last
       @response = Response.new(:words, search_word)
+    elsif requests_shutdown?
+      @shutdown_counter += 1
+      @total_counter += 1
+      @response = Response.new(:shutdown, @total_counter)
     else
       @total_counter += 1
       @response = Response.new(:other, @request)
     end
+  end
+
+  def send_response
+    puts "Sending response."
+
+    @client.puts @response.headers
+    @client.puts @response.output
+
+    puts "\nResponse: #{@response.output}"
+    puts "\nTotal Counter: #{@total_counter}"
+    @request.request_hash.each { |key, value| puts "#{key}: #{value}"}
+  end
+
+  def close_server
+    @client.close
+    puts "\nResponse complete, exiting."
   end
 
 end
