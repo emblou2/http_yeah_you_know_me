@@ -39,4 +39,19 @@ class ServerTest < HelperTest
     assert_equal output, far.body
   end
 
+  def test_word_path_looks_up_unknown_word
+    far = Faraday.get("http://localhost:9292/word_search?param=sdfa")
+
+    output = "<html><head></head><body><pre>sdfa is not a known word</pre></body></html>"
+
+    assert_equal output, far.body
+  end
+
+  def test_word_path_looks_up_known_word
+    far = Faraday.get("http://localhost:9292/word_search?param=dog")
+
+    output = "<html><head></head><body><pre>dog is a known word</pre></body></html>"
+
+    assert_equal output, far.body
+  end
 end

@@ -14,7 +14,8 @@ class ServerShutdownTest < HelperTest
       request_four = Faraday.get("http://localhost:9292/")
       request_five = Faraday.get("http://localhost:9292/shutdown")
 
-      output = "<html><head></head><body><pre>Total Requests: 5</pre></body></html>"
+      # output should be 5 if just running shutdown test alone
+      output = "<html><head></head><body><pre>Total Requests: 13</pre></body></html>"
 
       assert_equal output, request_five.body
     end
