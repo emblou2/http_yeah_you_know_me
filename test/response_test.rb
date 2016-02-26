@@ -31,7 +31,7 @@ class ResponseTest < HelperTest
     incoming = Response.new("","")
     time = Time.now.strftime("%I:%M%p on %A, %B %e, %Y")
 
-    response = incoming.response_builder(:datetime, "")
+    response = incoming.response_builder(:datetime, 0)
 
     assert_equal "<pre>#{time}</pre>", response
   end
@@ -50,6 +50,35 @@ class ResponseTest < HelperTest
     response = incoming.response_builder(:words, "sdfl")
 
     assert_equal "<pre>sdfl is not a known word</pre>", response
+  end
+
+  def test_knows_a_new_game
+    incoming = Response.new("","")
+
+    response = incoming.response_builder(:game_start, 0)
+
+    assert_equal "<pre>Good luck!</pre>", response
+  end
+
+  def test_response_to_guess_has_redirect
+    incoming = Response.new("","")
+
+    response = incoming.make_headers(:guess)
+
+    assert_equal ["http/1.1 301 Moved Permanently",
+                  "Location: http://localhost:9292/game",
+                  "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
+                  "server: ruby",
+                  "content-type: text/html; charset=iso-8859-1",
+                  "content-length: 39\r\n\r\n"].join("\r\n"), response
+  end
+
+  def test_gives_response_to_game_check
+    incoming = Response.new("","")
+
+    response = incoming.response_builder(:game_check, 5)
+
+    assert_equal "<pre>There have been 1 guesses. 5 is too low.</pre>", response
   end
 
 end

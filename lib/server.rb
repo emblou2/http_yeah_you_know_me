@@ -2,6 +2,7 @@ require 'socket'
 require 'pry'
 require_relative 'request'
 require_relative 'response'
+require_relative 'game'
 
 class Server
 
@@ -32,7 +33,7 @@ class Server
 
   def accept_request
     @client = @tcp_server.accept
-    puts "Ready for a request."
+    puts "\nReady for a request."
   end
 
   def package_request
@@ -45,19 +46,31 @@ class Server
   end
 
   def requests_hello?
-    @request.request_hash[:Path] == "/hello"
+    @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path] == "/hello"
   end
 
   def requests_datetime?
-    @request.request_hash[:Path] == "/datetime"
+    @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path] == "/datetime"
   end
 
   def requests_shutdown?
-    @request.request_hash[:Path] == "/shutdown"
+    @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path] == "/shutdown"
   end
 
   def requests_words?
     @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path].split("?").first == "/word_search"
+  end
+
+  def requests_game?
+    @request.request_hash[:Verb] == "POST" && @request.request_hash[:Path] == "/start_game"
+  end
+
+  def makes_a_guess?
+      @request.request_hash[:Verb] == "POST" && @request.request_hash[:Path] == "/game"
+  end
+
+  def gets_to_game?
+      @request.request_hash[:Verb] == "GET" && @request.request_hash[:Path] == "/game"
   end
 
   def read_request
@@ -72,6 +85,17 @@ class Server
       @total_counter += 1
       search_word = @request.request_hash[:Path].split("?").last.split("=").last
       @response = Response.new(:words, search_word)
+    elsif requests_game?
+      @total_counter += 1
+      @game = Game.new
+      @response = Response.new(:game_start)
+    elsif makes_a_guess?
+      @total_counter += 1
+      guess = @request.request_hash[:Path].split("?").last.split("=").last
+      @response = @game.update_guess(@guess)
+    elsif gets_to_game?
+      @total_counter += 1
+      @response = Response.new(:game_check)
     elsif requests_shutdown?
       @shutdown_counter += 1
       @total_counter += 1

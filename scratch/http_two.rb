@@ -1,6 +1,5 @@
 require 'socket'
 require 'pry'
-require_relative 'request'
 
 tcp_server = TCPServer.new(9292)
 counter = 0
@@ -10,14 +9,29 @@ loop do
   client = tcp_server.accept
 
   puts "Ready for a request"
-  request = Request.new
+    request_lines = []
+    while line = client.gets and !line.chomp.empty?
+      request_lines << line.chomp
+    end
+
+  redirect 'http://www.google.com'
 
   puts "Got this request:"
-  request.formatted
+  puts request_lines.inspect
 
   puts "Sending response."
-
-  client.puts response.headers
-  client.puts response.output
+  response = "<pre>" + request_lines.join("\n") + "</pre>"
+  output = "<html><head></head><body>#{response}</body></html>"
+  headers = ["http/1.1 200 ok",
+            "date: #{Time.now.strftime('%a, %e %b %Y %H:%M:%S %z')}",
+            "server: ruby",
+            "content-type: text/html; charset=iso-8859-1",
+            "content-length: #{output.length}\r\n\r\n"].join("\r\n")
+  client.puts headers
+  client.puts output
 
 end
+
+puts ["Wrote this response:", headers, output].join("\n")
+client.close
+puts "\nResponse complete, exiting."
