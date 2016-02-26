@@ -25,7 +25,7 @@ class Response
       if all_words.include?(data)
         @response = "<pre>#{data} is a known word</pre>"
       else
-        @response = "<pre>#{data} is a not a known word</pre>"
+        @response = "<pre>#{data} is not a known word</pre>"
       end
     elsif type == :other
       @response = "<pre>#{data.request_hash}</pre>"
@@ -34,7 +34,6 @@ class Response
 
   def make_output
     @output = "<html><head></head><body>#{@response}</body></html>"
-    make_headers
   end
 
   def make_headers

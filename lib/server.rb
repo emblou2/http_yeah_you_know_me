@@ -5,17 +5,20 @@ require_relative 'response'
 
 class Server
 
-  attr_accessor :tcp_server
+  attr_reader :hello_counter, :total_counter, :shutdown_counter
 
   def initialize
     @hello_counter = 0
     @total_counter = 0
     @shutdown_counter = 0
+  end
+
+  def start_server
     @tcp_server = TCPServer.new(9292)
   end
 
   def run_client
-    while open_for_business? do
+    while client_wants_to_talk? do
       accept_request
       package_request
       parse_request
@@ -23,7 +26,7 @@ class Server
     end
   end
 
-  def open_for_business?
+  def client_wants_to_talk?
     @shutdown_counter == 0
   end
 
@@ -92,7 +95,7 @@ class Server
 
   def close_server
     @client.close
-    puts "\nResponse complete, exiting."
+    puts "\nGoodbye. Come again soon!"
   end
 
 end
